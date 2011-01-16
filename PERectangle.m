@@ -156,8 +156,21 @@
   // EFFECTS: returns YES if this shape overlaps with specified shape.
 	CGPoint* c1 = self.corners;
 	CGPoint* c2 = rect.corners;
+
 	
-	CGPoint intersection;
+//The commented portion below is the algorithm that I finished in around 10hrs (including testing).
+//This one basically checks if there is any intersection on any edge of the rectangle. 
+//Highly inefficient and computationally intensive.
+//Around 6pm on the day of submission I Googl-ed around for some better algorithm and found the one thats below this commented portion.
+//http://en.wikipedia.org/wiki/Point_in_polygon
+//http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+//I understood that algorithm and implemented it in less than an hour. Looks better than the earlier one.
+//But I hope using an algorithm off the internet does not come under the category of Plagiarism - I guess I have understood it and learnt a new thing :)
+
+//My code is on github and contains the implementation by both the algorithms - you can download the previous version to test the commented one here - if the need be.
+//https://github.com/angad/CS3217-Problem-Set-1
+	
+/*	CGPoint intersection;
 	CGPoint p11, p12, p21, p22;
 	CGFloat d, ua, ub;
 	int i,j,k,l;
@@ -197,8 +210,57 @@
 				if([self liesWithin: p11 : p21 : p22] || [self liesWithin: p12 : p21 : p22] || [self liesWithin: p21 : p11: p12] ||[self liesWithin: p22: p11 : p12])
 					return YES;		
 		}
-	}	
+	}
+ */
 	
+	//last case - a rectangle inside another rectangle
+	CGPoint cent1 = self.center;
+	CGPoint cent2 = rect.center;
+	
+	
+	//Using the PNPOLY algorithm - Point inside a polygon
+	int c=0, i, j, k, l;
+	
+	for(k=0; k<4; k++)
+	{	c=0;
+		for(i=0, j=3; i<4; j=i++)
+		{
+			if(((c2[i].y>c1[k].y)!=(c2[j].y>c1[k].y)) &&
+			   (c1[k].x<(c2[j].x-c2[i].x)*(c1[k].y-c2[i].y)/(c2[j].y-c2[i].y) + c2[i].x))
+				c=!c;
+		}
+		if(c==1) return YES;
+	}
+	
+	for(k=0; k<4; k++)
+	{	c=0;
+		for(i=0, j=3; i<4; j=i++)
+		{
+			if(((c1[i].y>c2[k].y)!=(c1[j].y>c2[k].y)) &&
+			   (c2[k].x<(c1[j].x-c1[i].x)*(c2[k].y-c1[i].y)/(c1[j].y-c1[i].y) + c1[i].x))
+				c=!c;
+		}
+		if(c==1) return YES;
+	}
+	
+	//Testing boundary cases
+	CGPoint p11, p12, p21, p22;
+
+	for(i=0; i<4; i++)
+	{
+		if(i==3) k=0; else k=i+1;
+		p11 = c1[i];
+		p12 = c1[k]; //rectangle 1 corners
+		for(j=0; j<4; j++)
+		{
+			if(j==3) l=0; else l=j+1;
+			p21 = c2[j];
+			p22 = c2[l];//rectangle2 corners
+
+			if([self liesWithin: p11 : p21 : p22] || [self liesWithin: p12 : p21 : p22] || [self liesWithin: p21 : p11: p12] ||[self liesWithin: p22: p11 : p12])
+				return YES;	
+		}
+	}
 	return NO;
 }
 

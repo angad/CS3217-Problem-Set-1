@@ -115,7 +115,6 @@ int test() {
 	if(![rectangle1 overlapsWithRect: rectangle2])
 	{
 		printf("Test 1 failed\n");
-		return 0;
 	}
 	//Rotated rectangle overlapping test2
 	rectangle1 = [rectangle1 initWithOrigin:CGPointMake(5.0, 10.0) width: 5.0 height: 15.0 rotation: 90.0];
@@ -123,7 +122,6 @@ int test() {
 	if(![rectangle1 overlapsWithRect: rectangle2])
 	{
 		printf("Test 2 failed\n");
-		return 0;
 	}
 	
 	//Rotated rectangle overlapping test3
@@ -132,7 +130,6 @@ int test() {
 	if(![rectangle1 overlapsWithRect: rectangle2])
 	{
 		printf("Test 3 failed\n");
-		return 0;
 	}
 	
 	//translate function test
@@ -140,14 +137,12 @@ int test() {
 	if(!((rectangle1.origin.x - 15.0) > EPSILON) && ((rectangle1.origin.x - 20.0) > EPSILON))
 	{
 		printf("Test 4 failed\n");
-		return 0;
 	}
 	
 	//center getter test
 	if(!((rectangle1.center.x - 10.0) > EPSILON) && (rectangle1.center.y - 15.0) > EPSILON)
 	{
 		printf("Test 5 failed\n");
-		return 0;
 	}
 	
 	//Rotate and cornerFrom test (using corners getter)
