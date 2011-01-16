@@ -7,6 +7,9 @@
 
 #import "PERectangle.h"
 
+//float comparison tolerance epsilon
+#define EPSILON 0.00001
+
 @implementation PERectangle
 // OVERVIEW: This class implements a rectangle and the associated
 //             operations.
@@ -19,10 +22,13 @@
 	return CGPointMake(origin.x + 0.5*width, origin.y + 0.5*height);
 }
 
+//self defined function
 - (CGPoint)rotatePoint:(CGPoint)point {
-	
+	//REQUIRES : A point
+	//EFFECTS : Returns the point rotated around the center by the angle of rotation
 	CGPoint relative, rotated;
 	CGFloat dist, angle;
+	//converting to radians
 	angle = self.rotation * M_PI/180.0;
 
 	relative.x = point.x - self.center.x;
@@ -81,10 +87,10 @@
   //          height, and rotation angle in degrees
 	if(self = [super init])
 	{
-	origin = o;
-	width = w;
-	height = h;
-	rotation = r;
+		origin = o;
+		width = w;
+		height = h;
+		rotation = r;
 	}
 	return self;
 }
@@ -103,7 +109,7 @@
   // MODIFIES: self
   // EFFECTS: rotates this shape anti-clockwise by the specified angle
   // around the center of mass
-	rotation = angle;
+	rotation += angle;
 }
 
 - (void)translateX:(CGFloat)dx Y:(CGFloat)dy {
@@ -120,67 +126,79 @@
   if ([shape class] == [PERectangle class]) {
     return [self overlapsWithRect:(PERectangle *)shape];
   }
-
   return NO;
 }
 
 
-- (BOOL)liesWithin:(CGPoint)p{
+//self defined function
+- (BOOL)liesWithin:(CGPoint)intersection : (CGPoint)start : (CGPoint)end{
+	//REQUIRES : 3 points - start, end and intersection
+	//EFFECTS :  returns YES if the point intersection lies between start and end
 	
-	if(p.x > self.origin.x && p.x < (self.origin.x + self.width) && p.y > self.origin.y && p.y < (self.origin.y + self.height))
-		return YES;
-	else return NO;
+	CGFloat crossproduct, dotproduct, length;
+	
+	//checking if the points are aligned using cross product
+	crossproduct = (intersection.y - start.y)*(end.x - start.x) - (intersection.x-start.x)*(end.y-start.y);
+	if(fabs(crossproduct)>0.0001) return NO;
+	
+	//dotproduct should be positive
+	dotproduct = (intersection.x - start.x)*(end.x -start.x)+(intersection.y-start.y)*(end.x-start.x);
+	if(dotproduct < 0.0) return NO;
+	
+	//this is the squared length and it should be greater than the dotproduct
+	length = (end.x-start.x)*(end.x-start.x) + (end.y-start.y)*(end.y-start.y);
+	if(dotproduct > length) return NO;
+	
+	return YES;
 }
-
 
 - (BOOL)overlapsWithRect:(PERectangle*)rect {
   // EFFECTS: returns YES if this shape overlaps with specified shape.
-  // <add missing code here>
 	CGPoint* c1 = self.corners;
 	CGPoint* c2 = rect.corners;
 	
-	//printf("Corners for rectangle 1 <%f,%f>, <%f,%f>, <%f,%f>, <%f,%f>", c1[0].x, c1[0].y, c1[1].x, c1[1].y, c1[2].x, c1[2].y, c1[3].x, c1[3].y);
-	
 	CGPoint intersection;
-	
-	CGFloat x11, y11, x12, y12, x21, y21, x22, y22;
-	CGFloat d, u;
+	CGPoint p11, p12, p21, p22;
+	CGFloat d, ua, ub;
 	int i,j,k,l;
 	
 	for(i=0; i<4; i++)
 	{
 		if(i==3) k=0; else k=i+1;
-		x11 = c1[i].x;
-		y11 = c1[i].y; //rectangle1 corner1
-		x12 = c1[k].x;
-		y12 = c1[k].x; //rectangle1 corner2
+		
+		p11 = c1[i];
+		p12 = c1[k]; //rectangle 1 corners
 		
 		for(j=0; j<4; j++)
 		{
 			if(j==3) l=0; else l=j+1;
-			x21 = c2[j].x;
-			y21 = c2[j].y;//rectangle2 corner1
-			x22 = c2[l].x;
-			y22 = c2[l].y;//rectangle2 corner2
 			
-			d = (y22-y21)*(x12-x11) - (x22-x21)*(y12-y11);
-			u = (x22-x21)*(y11-y21) - (y22-y21)*(x11-x21);
+			p21 = c2[j];
+			p22 = c2[l];//rectangle2 corners
 			
+			ua = (p22.x-p21.x)*(p11.y-p21.y) - (p22.y-p21.y)*(p11.y-p21.x);
+			ub = (p12.x-p11.x)*(p11.y-p21.y) - (p12.y-p11.y)*(p11.x-p21.x);
+			d = (p22.y-p21.y)*(p12.x-p11.x) - (p22.x-p21.x)*(p12.y-p11.y);
 			
-			if(d!=0) // if d=0 lines are parallel
+			if(d!=0.0) // if d=0 lines are parallel
 			{
-				intersection.x = x11 + u*(x12-x11);
-				intersection.y = y11 + u*(y12-y11);
-				if([self liesWithin: intersection] || [rect liesWithin: intersection])
-					return YES;
+				ua = ua/d;
+				ub = ub/d;
+				
+				//the intersection point formed by the edges of the triangle
+				intersection.x = p11.x + ua*(p12.x-p11.x);
+				intersection.y = p11.y + ua*(p12.y-p11.y);
+				
+				//checking if the intersection point lies on the line segments formed by the corners
+				if([self liesWithin: intersection : p11 : p12] && [self liesWithin: intersection : p21 : p22]) return YES;
 			}
 			
-			if(d==0 && u==0) //coincident lines
-			{
-				return YES;
-			}
+			if(d==0.0 && ua==0.0 && ub==0.0) //coincident lines
+				if([self liesWithin: p11 : p21 : p22] || [self liesWithin: p12 : p21 : p22] || [self liesWithin: p21 : p11: p12] ||[self liesWithin: p22: p11 : p12])
+					return YES;		
 		}
 	}	
+	
 	return NO;
 }
 
@@ -192,4 +210,3 @@
 }
 
 @end
-

@@ -3,11 +3,14 @@
 //  
 //  CS3217 || Assignment 1
 //  Name: Angad Singh
-//
+//https://github.com/angad/CS3217-Problem-Set-1
 
 #import <Foundation/Foundation.h>
 // Import PERectangle here
 #import "PERectangle.h"
+
+//float comparison tolerance epsilon
+#define EPSILON 0.00001
 
 // define structure Rectangle
 struct Rectangle
@@ -24,7 +27,7 @@ int overlaps(struct Rectangle rect1, struct Rectangle rect2) {
 	int bottomRight2x = rect2.x + rect2.width;
 	int bottomRight2y = rect2.y + rect2.height;
 
-	if(rect1.x < bottomRight2x && bottomRight1x > rect2.x && rect1.y < bottomRight2y && bottomRight1y > rect2.y)
+	if(rect1.x <= bottomRight2x && bottomRight1x >= rect2.x && rect1.y <= bottomRight2y && bottomRight1y >= rect2.y)
 	return 1;
 	
 	return 0;
@@ -93,6 +96,7 @@ int main (int argc, const char * argv[]) {
 	[rectangle1 release];
 	[rectangle2 release];
 
+	if(test()==1) printf("All tests successful\n");
 	// exit program
 	return 0;
 }
@@ -101,6 +105,64 @@ int main (int argc, const char * argv[]) {
 int test() {
   // EFFECTS: returns 1 if all test cases are successfully passed and 0 otherwise
 
+	PERectangle *rectangle1 = [PERectangle alloc];
+	PERectangle *rectangle2 = [PERectangle alloc];
+	
+	
+	//Rotated rectangle overlapping test1
+	rectangle1 = [rectangle1 initWithOrigin:CGPointMake(0.0, 100.0) width: 100.0 height: 200.0 rotation: 90.0];
+	rectangle2 = [rectangle2 initWithOrigin:CGPointMake(150.0, 100.0) width: 100.0 height: 100.0 rotation: 0.0];
+	if(![rectangle1 overlapsWithRect: rectangle2])
+	{
+		printf("Test 1 failed\n");
+		return 0;
+	}
+	//Rotated rectangle overlapping test2
+	rectangle1 = [rectangle1 initWithOrigin:CGPointMake(5.0, 10.0) width: 5.0 height: 15.0 rotation: 90.0];
+	rectangle2 = [rectangle2 initWithOrigin:CGPointMake(15.0, 15.0) width: 10.0 height: 5.0 rotation: 0.0];
+	if(![rectangle1 overlapsWithRect: rectangle2])
+	{
+		printf("Test 2 failed\n");
+		return 0;
+	}
+	
+	//Rotated rectangle overlapping test3
+	rectangle1 = [rectangle1 initWithOrigin:CGPointMake(5.0, 10.0) width: 10.0 height: 10.0 rotation: 45.0];
+	rectangle2 = [rectangle2 initWithOrigin:CGPointMake(17.0, 10.0) width: 10.0 height: 10.0 rotation: 0.0];
+	if(![rectangle1 overlapsWithRect: rectangle2])
+	{
+		printf("Test 3 failed\n");
+		return 0;
+	}
+	
+	//translate function test
+	[rectangle1 translateX : 10.0  Y: 10.0];
+	if(!((rectangle1.origin.x - 15.0) > EPSILON) && ((rectangle1.origin.x - 20.0) > EPSILON))
+	{
+		printf("Test 4 failed\n");
+		return 0;
+	}
+	
+	//center getter test
+	if(!((rectangle1.center.x - 10.0) > EPSILON) && (rectangle1.center.y - 15.0) > EPSILON)
+	{
+		printf("Test 5 failed\n");
+		return 0;
+	}
+	
+	//Rotate and cornerFrom test (using corners getter)
+	[rectangle2 rotate:90.0];
+	CGPoint *corners = rectangle2.corners;
+	if(!(corners[0].x - 17.0)>EPSILON && (corners[0].y - 20.0)>EPSILON 
+	   && (corners[1].x - 17.0)>EPSILON && (corners[1].y - 10.0)>EPSILON
+	   && (corners[2].x - 27.0)>EPSILON && (corners[2].y - 10.0)>EPSILON
+	   && (corners[3].x - 27.0)>EPSILON && (corners[3].y - 20.0)>EPSILON)
+    {
+	   printf("Test 6 failed");
+	   return 0;
+    }
+	
+	return 1;
 }
 
 /* 
@@ -122,11 +184,11 @@ Question 2(i): Reflection (Bonus Question)
  Problem 1 - around an hour to get the basic thing running and another hour to optimize the thing. 
  Later found a good implementation online - http://silentmatt.com/rectangle-intersection/
  Based the conditions on that.
- Started 14th Jan 2pm and ended around 5pm 
+ Started 14th Jan 2pm and ended around 4pm 
  
- Problem 2 - around 2hrs on 14th Jan and 8hrs on 15th Jan
+ Problem 2 - around 2hrs on 14th Jan and 7hrs on 15th Jan and again 5hrs on 16th Jan
 
- The above hours include frequent visits to the loo and distractions courtesy iPad (specifically Angry Birds)
+ The above hours include frequent visits to the loo and makan and distractions courtesy iPad (specifically Angry Birds)
  
 (b) In retrospect, what could you have done better to reduce the time you spent solving this problem set?
 
